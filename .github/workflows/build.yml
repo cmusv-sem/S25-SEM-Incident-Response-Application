@@ -2,26 +2,44 @@ name: Build
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  sonarqube:
-    name: SonarQube
+  build:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install dependencies
         run: yarn
 
-      - name: Run Tests and Generate Coverage Report
-        run: yarn jest --coverage --coverageReporters=cobertura --coverageDirectory=coverage
+      - name: Lint with ESLint Report
+        run: yarn eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-report.json
+
+      - name: Run Tests and Generate Coverage
+        run: yarn test --coverage --coverageReporters=cobertura --coverageDirectory=coverage
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            coverage/
+            eslint-report.json
+
+  sonarqube:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: reports
+          path: .
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
@@ -32,6 +50,9 @@ jobs:
             -Dsonar.qualitygate.wait=false
             -Dsonar.projectKey=cmusv-sem_S25-SEM-Incident-Response-Application
             -Dsonar.organization=cmusv-sem
+            -Dsonar.sources=.
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.eslint.reportPaths=eslint-report.json
+
       - name: Ignore SonarQube Failure
         run: echo "Ignoring SonarQube Failure" || true
