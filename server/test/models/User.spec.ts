@@ -1,6 +1,6 @@
-import bcrypt from 'bcrypt'
-import * as TestDatabase from '../utils/TestDatabase'
+import bcrypt from 'bcryptjs'
 import User from '../../src/models/User'
+import * as TestDatabase from '../utils/TestDatabase'
 
 describe('User model', () => {
   // "System" user is created in the database upon app run so by default there always is one user present in the database.
@@ -8,11 +8,15 @@ describe('User model', () => {
   beforeEach(() => jest.clearAllMocks())
   afterEach(() => jest.restoreAllMocks())
 
-  const createTestUser = async (username: string, password: string, phoneNumber) => {
+  const createTestUser = async (
+    username: string,
+    password: string,
+    phoneNumber,
+  ) => {
     const rawUser = await new User({
       username,
       password,
-      phoneNumber
+      phoneNumber,
     })
 
     return rawUser.save()

@@ -4,7 +4,7 @@
  * Represents a user in the system with authentication capabilities.
  */
 
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import mongoose, { Document, Model, Schema } from 'mongoose'
 
 import ROLES from '../utils/Roles'
@@ -58,7 +58,8 @@ const UserSchema = new Schema<IUser>({
         }
         return val === null
       },
-      message: 'assignedCity is only allowed for users with role Police or Fire.',
+      message:
+        'assignedCity is only allowed for users with role Police or Fire.',
     },
   },
   /**
@@ -115,12 +116,12 @@ const UserSchema = new Schema<IUser>({
         }
         return val === null
       },
-      message: 'assignedVehicleTimestamp is only allowed for users with role Police or Fire.',
+      message:
+        'assignedVehicleTimestamp is only allowed for users with role Police or Fire.',
     },
   },
   previousLatitude: { type: Number, required: false, default: 0 },
   previousLongitude: { type: Number, required: false, default: 0 },
-  __v: { type: Number, select: false },
 })
 
 /**
@@ -134,7 +135,9 @@ UserSchema.pre('save', function (next) {
   bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
     if (err) return next(err)
 
-    bcrypt.hash(user.password!, salt, (err, hash) => {
+    const actualSalt = salt ?? process.env.SALT_WORK_FACTOR ?? 10
+
+    bcrypt.hash(user.password!, actualSalt, (err, hash) => {
       if (err) return next(err)
 
       // overwrite the plaintext password with the hashed one
@@ -163,23 +166,23 @@ UserSchema.methods.comparePassword = function (candidatePassword) {
  * Method to ensure a System Administator exits in the database.
  */
 UserSchema.statics.ensureSystemUser = async function () {
-  const username: string = "System"
-  const password: string = "1234"
+  const username: string = 'System'
+  const password: string = '1234'
   const role = ROLES.ADMINISTRATOR
 
   try {
     const existingUser = await this.findOne({ username: username })
 
     if (!existingUser) {
-      console.log('System user does not exist. Creating now.')      
+      console.log('System user does not exist. Creating now.')
       // Create user using new model instance to trigger pre-save hook
       const systemUser = new this({
         username: username,
-        password: password,  // Plain password - will be hashed by pre-save hook
-        role: role
+        password: password, // Plain password - will be hashed by pre-save hook
+        role: role,
       })
       await systemUser.save()
-      console.log('System user created successfully.');
+      console.log('System user created successfully.')
     } else {
       console.log('System user already exists.')
     }
@@ -188,4 +191,7 @@ UserSchema.statics.ensureSystemUser = async function () {
   }
 }
 
-export default mongoose.model<IUser, Model<IUser> & { ensureSystemUser: () => Promise<void> }>('User', UserSchema)
+export default mongoose.model<
+  IUser,
+  Model<IUser> & { ensureSystemUser: () => Promise<void> }
+>('User', UserSchema)

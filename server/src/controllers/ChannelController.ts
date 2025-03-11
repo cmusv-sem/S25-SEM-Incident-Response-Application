@@ -1,16 +1,17 @@
 // ChannelController handles operations related to channels, such as creating, listing, and appending messages.
 // It interacts with the Channel and User models and manages user connections.
 
+import { Storage } from '@google-cloud/storage'
+import dotenv from 'dotenv'
 import { FilterQuery, Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
+import Message, { IMessage } from '../models/Message'
+import Profile from '../models/Profile'
 import User from '../models/User'
-import Profile from '../models/Profile' 
-import Message from '../models/Message'
-import UserConnections from '../utils/UserConnections';
-import { Storage } from '@google-cloud/storage'
-import dotenv from 'dotenv'
+import UserConnections from '../utils/UserConnections'
 import UserController from './UserController'
+
 dotenv.config()
 
 class ChannelController {
@@ -55,7 +56,7 @@ class ChannelController {
     ownerId?: Types.ObjectId
     closed?: boolean
   }) => {
-    console.log("New channel:", channel.name)
+    console.log('New channel:', channel.name)
     if (channel.name === PUBLIC_CHANNEL_NAME) {
       throw new Error('Channel name cannot be the public channel name')
     }
@@ -72,8 +73,8 @@ class ChannelController {
     }
 
     // Check if the channel already exists
-    let exists : IChannel | null
-    if (channel.name === "PrivateContact") {
+    let exists: IChannel | null
+    if (channel.name === 'PrivateContact') {
       exists = await Channel.findOne({
         users,
       }).exec()
@@ -88,16 +89,14 @@ class ChannelController {
     }
 
     if (exists) {
-      console.log('Channel already exists',
-        exists
-      )
+      console.log('Channel already exists', exists)
       return exists
     } else {
       // Create a new channel if it doesn't exist
       console.log('Creating new channel...')
       console.log(channel.name)
-      exists = await Channel.findOne({name: channel.name}).exec()
-      if(exists && channel.name != "PrivateContact"){
+      exists = await Channel.findOne({ name: channel.name }).exec()
+      if (exists && channel.name != 'PrivateContact') {
         throw new Error('Channel should have unique name.')
       }
       const newChannel = await new Channel({
@@ -113,39 +112,42 @@ class ChannelController {
   }
 
   /**
-     * Creates a 911 emergency channel with specific configurations
-     * @param username - The username of the caller
-     * @param userId - MongoDB ObjectId of the user
-     * @returns The created 911 channel
-     */
+   * Creates a 911 emergency channel with specific configurations
+   * @param username - The username of the caller
+   * @param userId - MongoDB ObjectId of the user
+   * @returns The created 911 channel
+   */
   create911Channel = async (username: string, userId: Types.ObjectId) => {
-    const channel911Name = `I${username}_911`;
+    const channel911Name = `I${username}_911`
 
     // Find system user
-    const systemUser = await UserController.findUserByUsername('System');
+    const systemUser = await UserController.findUserByUsername('System')
     if (!systemUser) {
-      throw new Error('System user not found. Please ensure System user is created with Administrator role.');
+      throw new Error(
+        'System user not found. Please ensure System user is created with Administrator role.',
+      )
     }
 
     // Use existing create method with 911-specific configurations
     const channel = await this.create({
       name: channel911Name,
-      userIds: [userId, systemUser._id],
+      userIds: [userId, systemUser._id as Types.ObjectId],
       description: `911 Emergency Channel for ${username}`,
       ownerId: userId,
-      closed: false
-    });
+      closed: false,
+    })
 
     // Add system welcome message
     await this.appendMessage({
-      content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
-      senderId: systemUser._id,
-      channelId: channel._id,
+      content:
+        'Hello! A dispatcher will be with you shortly. Please provide any additional information here.',
+      senderId: systemUser._id as Types.ObjectId,
+      channelId: channel._id as Types.ObjectId,
       isAlert: false,
-      responders: []
-    });
+      responders: [],
+    })
 
-    return channel;
+    return channel
   }
 
   /**
@@ -224,17 +226,19 @@ class ChannelController {
 
     // Notify other online users in the channel
     channel.users.forEach((user) => {
-      if (user._id.equals(senderId)) return
+      const userId = user._id as Types.ObjectId
 
-      const id = user._id.toHexString()
+      if (userId.equals(senderId)) return
+
+      const id = userId.toHexString()
 
       if (!UserConnections.isUserConnected(id)) return
 
       const connection = UserConnections.getUserConnection(id)!
 
-      if (isAlert && user.role == "Fire") {
+      if (isAlert && user.role == 'Fire') {
         connection.emit('new-fire-alert', message)
-      } else if (isAlert && user.role == "Police") {
+      } else if (isAlert && user.role == 'Police') {
         connection.emit('new-police-alert', message)
       } else {
         connection.emit('new-message', message)
@@ -298,14 +302,7 @@ class ChannelController {
     await channel.save()
 
     // Notify other online users in the channel
-    channel.users.forEach((user) => {
-      if (user._id.equals(senderId)) return
-      const id = user._id.toHexString()
-      if (!UserConnections.isUserConnected(id)) return
-      const connection = UserConnections.getUserConnection(id)!
-      connection.emit('new-message', message)
-    })
-
+    await this.broadcastBySocket(channel, senderId, 'new-message', message)
     return message
   }
 
@@ -337,21 +334,27 @@ class ChannelController {
       throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
 
-    const receiverId = channel.users.find(user => !user._id.equals(senderId))?._id as Types.ObjectId | undefined;
+    const receiverId = channel.users.find(
+      (user) => !(user._id as Types.ObjectId).equals(senderId),
+    )?._id as Types.ObjectId | undefined
     if (!receiverId) {
-      throw new Error(`No other user found in Channel(${channelId.toHexString()}).`);
+      throw new Error(
+        `No other user found in Channel(${channelId.toHexString()}).`,
+      )
     }
 
-    const receiverProfile = await Profile.findOne({ userId: receiverId }).exec();
+    const receiverProfile = await Profile.findOne({ userId: receiverId }).exec()
     if (!receiverProfile) {
-      throw new Error(`Profile for Receiver(${receiverId.toHexString()}) not found.`);
+      throw new Error(
+        `Profile for Receiver(${receiverId.toHexString()}) not found.`,
+      )
     }
     const receiver = await User.findById(receiverId).exec()
     if (!receiver) {
-      throw new Error(`Receiver(${receiverId.toHexString()}) not found.`);
+      throw new Error(`Receiver(${receiverId.toHexString()}) not found.`)
     }
-    const receiverPhoneNumber = receiverProfile.phone;
-    const content = `Phone call started now between ${sender.username} and ${receiver?.username}.`;
+    const receiverPhoneNumber = receiverProfile.phone
+    const content = `Phone call started now between ${sender.username} and ${receiver?.username}.`
 
     // Create and save the new message
     const message = await new Message({
@@ -364,15 +367,9 @@ class ChannelController {
     channel.messages!.push(message)
     await channel.save()
 
-    // Notify other online users in the channel
-    channel.users.forEach((user) => {
-      if (user._id.equals(senderId)) return
-      const id = user._id.toHexString()
-      if (!UserConnections.isUserConnected(id)) return
-      const connection = UserConnections.getUserConnection(id)!
-      connection.emit('new-message', message)
-    })
-    return {message, phoneNumber: receiverPhoneNumber};
+    await this.broadcastBySocket(channel, senderId, 'new-message', message)
+
+    return { message, phoneNumber: receiverPhoneNumber }
   }
 
   /**
@@ -562,22 +559,24 @@ class ChannelController {
 
   getClosedGroups = async () => {
     try {
-      const closedGroups = await Channel.find({ closed: true }).sort({ name: 1 });
-      return closedGroups;
+      const closedGroups = await Channel.find({ closed: true }).sort({
+        name: 1,
+      })
+      return closedGroups
     } catch (error) {
-      console.error('Error getting closed groups:', error);
-      throw error;
+      console.error('Error getting closed groups:', error)
+      throw error
     }
   }
 
   /**
- * Update existing channel
- * @param channel - An object containing channel details to update
- * @param channel._id - ID of the channel to update
- * @param channel.userIds - Array of user IDs to be in the channel
- * @returns The updated channel object
- * @throws Error if the channel is not found
- */
+   * Update existing channel
+   * @param channel - An object containing channel details to update
+   * @param channel._id - ID of the channel to update
+   * @param channel.userIds - Array of user IDs to be in the channel
+   * @returns The updated channel object
+   * @throws Error if the channel is not found
+   */
   updateChannel = async (channel: {
     _id: Types.ObjectId
     name: string
@@ -586,61 +585,89 @@ class ChannelController {
     ownerId?: Types.ObjectId
     closed?: boolean
   }) => {
-    console.log("Updating channel members:", channel._id.toString());
+    console.log('Updating channel members:', channel._id.toString())
 
     // Find the channel by ID
-    const existingChannel = await Channel.findById(channel._id).exec();
+    const existingChannel = await Channel.findById(channel._id).exec()
 
     if (!existingChannel) {
-      throw new Error(`Channel(${channel._id.toString()}) not found.`);
+      throw new Error(`Channel(${channel._id.toString()}) not found.`)
     }
 
     // Remove duplicates and ensure order of user IDs
     const userIds = Array.from(new Set(channel.userIds)).sort((a, b) =>
       a.toString().localeCompare(b.toString()),
-    );
+    )
 
     // Find all user objects
     const users = await Promise.all(
       userIds.map(async (id) => {
-        const user = await User.findById(id).exec();
+        const user = await User.findById(id).exec()
         if (!user) {
-          throw new Error(`User(${id.toString()}) not found.`);
+          throw new Error(`User(${id.toString()}) not found.`)
         }
-        return user;
-      })
-    );
+        return user
+      }),
+    )
 
     // Only update the users field
-    existingChannel.users = users;
+    existingChannel.users = users
 
     // Keep other properties the same
-    existingChannel.name = channel.name || existingChannel.name;
-    existingChannel.description = channel.description || existingChannel.description;
-    existingChannel.closed = channel.closed !== undefined ? channel.closed : existingChannel.closed;
+    existingChannel.name = channel.name || existingChannel.name
+    existingChannel.description =
+      channel.description || existingChannel.description
+    existingChannel.closed =
+      channel.closed !== undefined ? channel.closed : existingChannel.closed
 
     // If owner is provided, update it
     if (channel.ownerId) {
-      const newOwner = await User.findById(channel.ownerId).exec();
+      const newOwner = await User.findById(channel.ownerId).exec()
       if (newOwner) {
-        existingChannel.owner = newOwner;
+        existingChannel.owner = newOwner
       }
     }
 
     // Save the updated channel
-    const updatedChannel = await existingChannel.save();
+    const updatedChannel = await existingChannel.save()
     UserConnections.broadcast('updateGroups', {})
-    console.log("Channel updated successfully");
+    console.log('Channel updated successfully')
 
-    return updatedChannel;
+    return updatedChannel
+  }
+
+  /**
+   * Broadcast a message to all users in the channel except the sender
+   * @param channel - The channel to broadcast the message to
+   * @param senderId - The ID of the sender
+   * @param eventName - The name of the event to broadcast
+   * @param message - The message to broadcast
+   */
+  broadcastBySocket = async (
+    channel: IChannel,
+    senderId: Types.ObjectId,
+    eventName: string,
+    message: IMessage,
+  ) => {
+    channel.users
+      .filter((user) => !(user._id as Types.ObjectId).equals(senderId))
+      .forEach((receiver) => {
+        const id = (receiver._id as Types.ObjectId).toHexString()
+
+        const connection = UserConnections.getUserConnection(id)
+
+        // No Connection?
+        if (connection === null || connection === undefined) return
+
+        connection.emit(eventName, message)
+      })
   }
 
   acknowledgeMessage = async (
     messageId: Types.ObjectId,
     senderId: Types.ObjectId,
-    channelId: Types.ObjectId
+    channelId: Types.ObjectId,
   ) => {
-
     const sender = await User.findById(senderId).exec()
     if (!sender) {
       throw new Error(`Sender(${senderId.toHexString()}) not found.`)
@@ -651,30 +678,27 @@ class ChannelController {
       throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
 
-
     try {
-      const message = await
-        Message.findByIdAndUpdate(
-          messageId,
-          { $push: { acknowledgedBy: senderId, acknowledgedAt: new Date().toISOString() } },
-          { new: true }
-        ).exec()
+      const message = await Message.findByIdAndUpdate(
+        messageId,
+        {
+          $push: {
+            acknowledgedBy: senderId,
+            acknowledgedAt: new Date().toISOString(),
+          },
+        },
+        { new: true },
+      ).exec()
       if (!message) {
         throw new Error(`Message(${messageId.toHexString()}) not found.`)
       }
 
-      // Notify commend for acknowledgment
-      channel.users.forEach((user) => {
-        if (user._id.equals(senderId)) return
-
-        const id = user._id.toHexString()
-
-        if (!UserConnections.isUserConnected(id)) return
-
-        const connection = UserConnections.getUserConnection(id)!
-
-        connection.emit('acknowledge-alert', message)
-      })
+      await this.broadcastBySocket(
+        channel,
+        senderId,
+        'acknowledge-alert',
+        message,
+      )
 
       return message
     } catch (error) {

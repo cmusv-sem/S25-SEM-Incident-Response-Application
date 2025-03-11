@@ -1,8 +1,8 @@
 name: Build
-
 on:
   push:
     branches:
+      # So that the periodic-ci push does not trigger a build
       - master
 
   pull_request:
@@ -45,7 +45,6 @@ jobs:
           name: coverage
           path: coverage/
 
-
   sonarqube:
     needs: build
     runs-on: ubuntu-latest
@@ -76,7 +75,6 @@ jobs:
             -Dsonar.projectBaseDir=${{ github.workspace }}
             -Dsonar.sources=server
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-
 
   deploy:
     # needs: sonarqube  # comment out to bypass previous stages

@@ -4,7 +4,7 @@
 import Channel from '../models/Channel'
 import User, { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
-import SystemGroupConfigs from "../utils/SystemDefinedGroups"
+import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 import * as Token from '../utils/Token'
 import UserConnections from '../utils/UserConnections'
 
@@ -42,15 +42,21 @@ class UserController {
           const channel = await Channel.findOne({ name: config.name }).exec()
 
           if (channel) {
-            channel.users.push(user._id);
-            await channel.save();
-            console.log(`User ${username} added to system group: ${config.name}`)
+            // TODO: Fix this. Someone should be pushing an IUser rather than userId
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            channel.users.push(user._id)
+            await channel.save()
+            console.log(
+              `User ${username} added to system group: ${config.name}`,
+            )
           } else {
-            console.log(`System group ${config.name} not found for user ${username}`)
+            console.log(
+              `System group ${config.name} not found for user ${username}`,
+            )
           }
         }
       }
-
     }
 
     // NOTE: password is still visible in the user instance.
@@ -98,11 +104,11 @@ class UserController {
     }))
 
     const onlineUsers = formattedUsers
-      .filter(user => user.online)
+      .filter((user) => user.online)
       .sort((a, b) => a.username.localeCompare(b.username))
 
     const offlineUsers = formattedUsers
-      .filter(user => !user.online)
+      .filter((user) => !user.online)
       .sort((a, b) => a.username.localeCompare(b.username))
 
     return onlineUsers.concat(offlineUsers)
@@ -114,14 +120,14 @@ class UserController {
    * @returns The last known latitude and longitude of the user
    */
   async getUserLastLocation(userId: string) {
-    const user = await User.findById(userId).exec();
+    const user = await User.findById(userId).exec()
     if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
+      throw new Error(`User with ID ${userId} not found`)
     }
     return {
       latitude: user.previousLatitude,
       longitude: user.previousLongitude,
-    };
+    }
   }
 
   /**
@@ -131,15 +137,19 @@ class UserController {
    * @param longitude - The new longitude to store
    * @returns The updated user object
    */
-  async updateUserLastLocation(userId: string, latitude: number, longitude: number) {
-    const user = await User.findById(userId).exec();
+  async updateUserLastLocation(
+    userId: string,
+    latitude: number,
+    longitude: number,
+  ) {
+    const user = await User.findById(userId).exec()
     if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
+      throw new Error(`User with ID ${userId} not found`)
     }
-    user.previousLatitude = latitude;
-    user.previousLongitude = longitude;
-    await user.save();
-    return user;
+    user.previousLatitude = latitude
+    user.previousLongitude = longitude
+    await user.save()
+    return user
   }
 
   /**
@@ -150,17 +160,17 @@ class UserController {
    */
   // TO-DO: Write Unit Test
   async findUserByUsername(username: string) {
-    const query = { username };
+    const query = { username }
 
-    const user = await User.findOne(query).exec();
+    const user = await User.findOne(query).exec()
     if (!user) {
-        return null;
+      return null
     }
 
     return {
-        ...(user.toJSON() as Pick<IUser, '_id' | 'username' | 'role'>),
-    };
-}
+      ...(user.toJSON() as Pick<IUser, '_id' | 'username' | 'role'>),
+    }
+  }
 }
 
 export default new UserController()

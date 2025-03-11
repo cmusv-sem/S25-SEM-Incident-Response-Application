@@ -1,14 +1,14 @@
-import React, { useState } from 'react'
 import { AppDispatch } from '@/app/store'
 import { Box, Typography } from '@mui/material'
+import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router'
+import AlertSnackbar from '../components/common/AlertSnackbar'
 import LoginForm, { IProps as ILoginFormProps } from '../components/LoginForm'
 import request, { IRequestError } from '../utils/request'
-import AlertSnackbar from '../components/common/AlertSnackbar'
 
 // LoginPage component: Handles user authentication
-const LoginPage: React.FC = () => {
+export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const history = useNavigate()
@@ -89,4 +89,3 @@ const LoginPage: React.FC = () => {
     </Box>
   )
 }
-export default LoginPage

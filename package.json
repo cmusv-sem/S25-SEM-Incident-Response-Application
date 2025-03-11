@@ -3,18 +3,18 @@
   "version": "1.0.0",
   "description": "SEM IR App",
   "scripts": {
-    "lint": "npm run lint --prefix client && npm run lint --prefix server",
+    "lint": "pnpm run lint --prefix client && pnpm run lint --prefix server",
     "lint:fix": "echo \"lint:fix not implemented\"",
-    "install:client": "cd client && npm install && cd ..",
-    "install:server": "cd server && npm install && cd ..",
-    "install": "npm run install:client && npm run install:server",
-    "dev:client": "cd client && npm start && cd ..",
-    "dev:server": "cd server && npm run dev && cd ..",
-    "dev": "concurrently --kill-others-on-fail \"npm run dev:server\" \"npm run dev:client\"",
-    "test": "cd server && npm test && cd ..",
+    "install:client": "cd client && pnpm install && cd ..",
+    "install:server": "cd server && pnpm install && cd ..",
+    "install": "pnpm run install:client && pnpm run install:server",
+    "dev:client": "cd client && pnpm start && cd ..",
+    "dev:server": "cd server && pnpm run dev && cd ..",
+    "dev": "concurrently --kill-others-on-fail \"pnpm run dev:server\" \"pnpm run dev:client\"",
+    "test": "cd server && pnpm test && cd ..",
     "clean": "rm -rf node_modules && cd client && rm -rf node_modules && cd .. && cd server && rm -rf node_modules && cd ..",
-    "reinstall": "npm run clean && npm install",
-    "format": "cd client && npm run format && cd .. && cd server && npm run format && cd .."
+    "reinstall": "pnpm run clean && pnpm install",
+    "format": "cd client && pnpm run format && cd .. && cd server && pnpm run format && cd .."
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.6",

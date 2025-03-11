@@ -1,10 +1,10 @@
 // UserRouter handles operations related to users, such as registration and listing.
 // It interacts with the User model and manages user authentication.
 
-import { Router } from 'express';
+import { Router } from 'express'
 
-import UserController from '../controllers/UserController';
-import ROLES from '../utils/Roles';
+import UserController from '../controllers/UserController'
+import ROLES from '../utils/Roles'
 
 export default Router()
   /**
@@ -27,7 +27,12 @@ export default Router()
       ).toObject()
 
       // Remove sensitive information before sending the response
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       delete user.password
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       delete user.__v
 
       response.send(user)
@@ -54,16 +59,16 @@ export default Router()
    * @throws {400} If the user is not found
    */
   .get('/:id/location', async (request, response) => {
-    const { id } = request.params;
+    const { id } = request.params
     try {
-      const location = await UserController.getUserLastLocation(id);
-      response.send(location);
+      const location = await UserController.getUserLastLocation(id)
+      response.send(location)
     } catch (e) {
-      const error = e as Error;
-      response.status(400).send({ message: error.message });
+      const error = e as Error
+      response.status(400).send({ message: error.message })
     }
   })
-  
+
   /**
    * Update user's last known location
    * @route PATCH /api/users/:id/location
@@ -74,14 +79,18 @@ export default Router()
    * @throws {400} If the user is not found or update fails
    */
   .patch('/:id/location', async (request, response) => {
-    const { id } = request.params;
-    const { latitude, longitude } = request.body;
-    
+    const { id } = request.params
+    const { latitude, longitude } = request.body
+
     try {
-      const updatedUser = await UserController.updateUserLastLocation(id, latitude, longitude);
-      response.send(updatedUser);
+      const updatedUser = await UserController.updateUserLastLocation(
+        id,
+        latitude,
+        longitude,
+      )
+      response.send(updatedUser)
     } catch (e) {
-      const error = e as Error;
-      response.status(400).send({ message: error.message });
+      const error = e as Error
+      response.status(400).send({ message: error.message })
     }
-  });
+  })
