@@ -1,12 +1,13 @@
 // UserController handles user-related operations such as registration, login, and listing users.
 // It interacts with the User model and manages user authentication.
 
-import Channel from '../models/Channel'
-import User, { IUser } from '../models/User'
-import ROLES from '../utils/Roles'
-import SystemGroupConfigs from "../utils/SystemDefinedGroups"
-import * as Token from '../utils/Token'
-import UserConnections from '../utils/UserConnections'
+import { Types } from 'mongoose';
+import Channel from '../models/Channel';
+import User, { IUser } from '../models/User';
+import ROLES from '../utils/Roles';
+import SystemGroupConfigs from "../utils/SystemDefinedGroups";
+import * as Token from '../utils/Token';
+import UserConnections from '../utils/UserConnections';
 
 class UserController {
   /**
@@ -42,7 +43,7 @@ class UserController {
           const channel = await Channel.findOne({ name: config.name }).exec()
 
           if (channel) {
-            channel.users.push(user._id);
+            channel.users.push(user._id as Types.ObjectId);
             await channel.save();
             console.log(`User ${username} added to system group: ${config.name}`)
           } else {

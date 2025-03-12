@@ -5,27 +5,29 @@
  * This model is similar to a Slack channel.
  */
 
-import mongoose, { Schema, Document, Model, Types } from 'mongoose'
-import AutoPopulate from 'mongoose-autopopulate'
+import mongoose, { Document, Model, Schema, Types } from 'mongoose';
+import AutoPopulate from 'mongoose-autopopulate';
 
-import User, { IUser } from './User'
-import { IMessage } from './Message'
 import UserController from "../controllers/UserController";
 import SystemGroupConfigs from "../utils/SystemDefinedGroups";
+import { IMessage } from './Message';
+import User, { IUser } from './User';
 
 export const PUBLIC_CHANNEL_NAME = 'Public'
 
 /**
  * Interface for the Channel document
  */
+
 export interface IChannel extends Document {
   name: string
   description?: string
   owner?: IUser
   closed: boolean
-  users: IUser[]
+  users: Types.ObjectId[] // ✅ Correct type
   messages?: IMessage[]
 }
+
 
 /**
  * Interface for the Channel model
