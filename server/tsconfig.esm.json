@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "outDir": "build-esm",
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "target": "ESNext",
+      "esModuleInterop": true,
+      "strict": true
+    },
+    "include": ["./test/scripts/loadtest/*.ts"],
+    "exclude": ["node_modules"]
+  }
+  

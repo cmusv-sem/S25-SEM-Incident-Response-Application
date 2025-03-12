@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server-core'
+import mongoose from 'mongoose'
 
 import * as Database from '../../src/utils/Database'
 
@@ -14,7 +14,10 @@ export const connect = async () => {
 
 export const close = async () => {
   if (mongo) {
-    await mongoose.connection.db.dropDatabase()
+    if (mongoose.connection.readyState === 1 && mongoose.connection.db) {
+      await mongoose.connection.db.dropDatabase();
+    }
+    
     await Database.close()
     await mongo.stop()
   }

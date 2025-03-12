@@ -120,14 +120,13 @@ const UserSchema = new Schema<IUser>({
   },
   previousLatitude: { type: Number, required: false, default: 0 },
   previousLongitude: { type: Number, required: false, default: 0 },
-  __v: { type: Number, select: false },
 })
 
 /**
  * Pre-save hook to hash the password before saving the user to the database
  */
 UserSchema.pre('save', function (next) {
-  const user = this as IUser
+  const user = this as Document & IUser;
 
   if (!user.isModified('password')) return next()
 
