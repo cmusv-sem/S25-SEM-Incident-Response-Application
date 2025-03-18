@@ -20,19 +20,7 @@ jobs:
           pattern: '^(chore|ci|docs|feat|fix|perf|refactor|release|style|test)\s\((client|server|common|infra|config|deps|other)\):\s\[(SEM-\d{4}|--)\]\s.+$'
           error: 'Commit message does not match the required format: {type} ({scope}): [{ticket_id}] {subject}'
 
-  sonarqube:
-    name: SonarQube
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  build:
+  build-and-sonar:
     needs: check-commits
     name: Build & Test
     runs-on: ubuntu-latest
@@ -63,11 +51,22 @@ jobs:
           npm run test       # Runs the test script defined in package.json (npm jest --coverage --coverageReporters=lcov --coverageDirectory=coverage)
           ls -R coverage/
 
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v4
+      # - name: Upload Coverage Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage
+      #     path: coverage/
+      
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
         with:
-          name: coverage
-          path: coverage/
+          args: >
+            -Dsonar.qualitygate.wait=false
+            -Dsonar.projectKey=cmusv-sem_S25-SEM-Incident-Response-Application
+            -Dsonar.organization=cmusv-sem
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # sonarqube:
   #   needs: build
@@ -101,7 +100,7 @@ jobs:
   #           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
 
   deploy:
-    needs: build # comment out to bypass previous stages
+    needs: build-and-sonar # comment out to bypass previous stages
     name: Deploy Client & Server
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only deploy on master branch
