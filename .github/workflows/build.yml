@@ -59,10 +59,7 @@ jobs:
       
       - name: Debug Server Workspace
         run: |
-          ls -R server/
-      - name: Debug Server Workspace
-        run: |
-          ls -R client/
+          ls -R server/coverage
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
