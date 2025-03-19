@@ -57,6 +57,10 @@ jobs:
       #     name: coverage
       #     path: coverage/
       
+      - name: Debug Server Workspace
+        run: |
+          ls -R server/coverage
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         with:
