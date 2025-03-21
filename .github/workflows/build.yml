@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - trim-pkg-json
 
   pull_request:
     types: [opened, synchronize, reopened]

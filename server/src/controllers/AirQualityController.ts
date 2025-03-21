@@ -66,7 +66,7 @@ class AirQualityController {
           if (location) {
             location.air_qualities.push({
               air_quality: airQualityData.air_quality,
-              timeStamp: currentTime,
+              timeStamp: currentTime as number,
             })
             await location.save()
 
@@ -74,7 +74,7 @@ class AirQualityController {
             this.notifyAirQualityUpdate(
               locationId,
               airQualityData.air_quality,
-              currentTime,
+              currentTime as number,
               latitude,
               longitude,
             )
@@ -157,10 +157,10 @@ class AirQualityController {
       throw new Error(`PurpleAir API returned status: ${response.status}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as Record<string, unknown>
     // console.log(data);
     // fields: [ 'sensor_index', 'latitude', 'longitude', 'pm2.5_atm' ]
-    const sensors = data.data
+    const sensors = data.data as Array<[number, number, number, number]>
 
     if (!sensors || sensors.length === 0) {
       return {
@@ -377,10 +377,10 @@ class AirQualityController {
       throw new Error(`PurpleAir API returned status: ${response.status}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as Record<string, unknown>
     // console.log(data);
     // fields: [ 'sensor_index', 'latitude', 'longitude', 'pm2.5_atm' ]
-    const sensors = data.data
+    const sensors = data.data as Array<[number, number, number, number]>
 
     if (!sensors || sensors.length === 0) {
       return {
