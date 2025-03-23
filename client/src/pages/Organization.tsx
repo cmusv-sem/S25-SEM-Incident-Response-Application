@@ -465,7 +465,6 @@ const Organization: React.FC = () => {
                               padding: '8px',
                             }}
                           >
-                            {/* City name + delete button */}
                             <Box
                               sx={{
                                 display: 'flex',
