@@ -1,3 +1,10 @@
+/**
+ * Organization.tsx - Example with both MUI & Bootstrap integrated
+ */
+
+import 'bootstrap/dist/css/bootstrap.min.css'
+import React, { useEffect, useState } from 'react'
+
 import { Add, Delete } from '@mui/icons-material'
 import {
   Box,
@@ -11,7 +18,6 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
 import {
   DragDropContext,
   Draggable,
@@ -63,7 +69,9 @@ const Organization: React.FC = () => {
   // For responsive layout
   const isMobile = useMediaQuery('(max-width:600px)')
 
-  // Fetch all data from the backend
+  // -----------------------------
+  //   FETCH DATA FROM BACKEND
+  // -----------------------------
   const fetchAllData = async () => {
     try {
       const [carsData, trucksData, citiesData, personnelData] =
@@ -244,264 +252,259 @@ const Organization: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '100%', overflowX: 'hidden' }}>
-      <Typography variant="h6" align="center" style={{ marginBottom: '20px' }}>
+    <div className="container-fluid" style={{ padding: '20px' }}>
+      <Typography variant="h6" align="center" className="mb-4">
         Drag & drop personnel & vehicles:
       </Typography>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <Box display="flex" justifyContent="space-between">
+        <Box className="row">
           {/* LEFT SIDE: PERSONNEL, CARS, TRUCKS */}
-          <Card style={{ width: isMobile ? '45%' : '30%' }}>
-            <CardContent>
-              {/* PERSONNEL */}
-              <Typography variant="h6">Personnel</Typography>
-              <Droppable droppableId="personnel">
-                {(provided) => (
-                  <List
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    style={{
-                      minHeight: '50px',
-                      maxHeight: '200px',
-                      overflowY: 'auto',
-                    }}
-                  >
-                    {sortedPersonnel.map((person, index) => {
-                      const draggableId = `Personnel::${person.name}`
-                      return (
-                        <Draggable
-                          key={draggableId}
-                          draggableId={draggableId}
-                          index={index}
-                        >
-                          {(providedDrag) => (
-                            <ListItem
-                              ref={providedDrag.innerRef}
-                              {...providedDrag.draggableProps}
-                              {...providedDrag.dragHandleProps}
-                              sx={{ touchAction: 'none' }}
-                            >
-                              <ListItemText primary={person.name} />
-                            </ListItem>
-                          )}
-                        </Draggable>
-                      )
-                    })}
-                    {provided.placeholder}
-                  </List>
-                )}
-              </Droppable>
+          <div className="col-12 col-md-4 mb-3">
+            <Card className="shadow-sm">
+              <CardContent>
+                {/* PERSONNEL */}
+                <Typography variant="h6" className="mb-2">
+                  Personnel
+                </Typography>
+                <Droppable droppableId="personnel">
+                  {(provided) => (
+                    <List
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      style={{
+                        minHeight: '50px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                      }}
+                    >
+                      {sortedPersonnel.map((person, index) => {
+                        const draggableId = `Personnel::${person.name}`
+                        return (
+                          <Draggable
+                            key={draggableId}
+                            draggableId={draggableId}
+                            index={index}
+                          >
+                            {(providedDrag) => (
+                              <ListItem
+                                ref={providedDrag.innerRef}
+                                {...providedDrag.draggableProps}
+                                {...providedDrag.dragHandleProps}
+                                sx={{ touchAction: 'none' }}
+                              >
+                                <ListItemText primary={person.name} />
+                              </ListItem>
+                            )}
+                          </Draggable>
+                        )
+                      })}
+                      {provided.placeholder}
+                    </List>
+                  )}
+                </Droppable>
 
-              {/* CARS */}
-              <Typography variant="h6" style={{ marginTop: 16 }}>
-                Cars
-              </Typography>
-              <Box display="flex" alignItems="center" mb={1}>
-                <TextField
-                  size="small"
-                  value={newCar}
-                  onChange={(e) => setNewCar(e.target.value)}
-                  placeholder="New Car"
-                />
-                <IconButton onClick={addCar}>
-                  <Add />
-                </IconButton>
-              </Box>
-              <Droppable droppableId="cars">
-                {(provided) => (
-                  <List
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    style={{ minHeight: '50px' }}
-                  >
-                    {sortedCars.map((car, index) => {
-                      const draggableId = `Car::${car.name}`
-                      return (
-                        <Draggable
-                          key={draggableId}
-                          draggableId={draggableId}
-                          index={index}
-                        >
-                          {(providedDrag) => (
-                            <ListItem
-                              ref={providedDrag.innerRef}
-                              {...providedDrag.draggableProps}
-                              {...providedDrag.dragHandleProps}
-                              sx={{
-                                touchAction: 'none',
-                                padding: isMobile ? '4px 8px' : '6px 12px',
-                              }}
-                              secondaryAction={
-                                <IconButton
-                                  edge="end"
-                                  size="small"
-                                  onClick={() => removeCar(car._id)}
-                                >
-                                  <Delete fontSize="small" />
-                                </IconButton>
-                              }
-                            >
-                              <ListItemText
-                                primary={car.name}
-                                primaryTypographyProps={{
-                                  variant: 'body2',
-                                  fontSize: isMobile ? '0.75rem' : '0.875rem',
-                                }}
-                              />
-                            </ListItem>
-                          )}
-                        </Draggable>
-                      )
-                    })}
-                    {provided.placeholder}
-                  </List>
-                )}
-              </Droppable>
+                {/* CARS */}
+                <Typography variant="h6" style={{ marginTop: 16 }}>
+                  Cars
+                </Typography>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <TextField
+                    size="small"
+                    value={newCar}
+                    onChange={(e) => setNewCar(e.target.value)}
+                    placeholder="New Car"
+                  />
+                  <IconButton onClick={addCar}>
+                    <Add />
+                  </IconButton>
+                </Box>
+                <Droppable droppableId="cars">
+                  {(provided) => (
+                    <List
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      style={{ minHeight: '50px' }}
+                    >
+                      {sortedCars.map((car, index) => {
+                        const draggableId = `Car::${car.name}`
+                        return (
+                          <Draggable
+                            key={draggableId}
+                            draggableId={draggableId}
+                            index={index}
+                          >
+                            {(providedDrag) => (
+                              <ListItem
+                                ref={providedDrag.innerRef}
+                                {...providedDrag.draggableProps}
+                                {...providedDrag.dragHandleProps}
+                                sx={{ touchAction: 'none' }}
+                                secondaryAction={
+                                  <IconButton
+                                    edge="end"
+                                    size="small"
+                                    onClick={() => removeCar(car._id)}
+                                  >
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                }
+                              >
+                                <ListItemText
+                                  primary={car.name}
+                                  primaryTypographyProps={{
+                                    variant: 'body2',
+                                  }}
+                                />
+                              </ListItem>
+                            )}
+                          </Draggable>
+                        )
+                      })}
+                      {provided.placeholder}
+                    </List>
+                  )}
+                </Droppable>
 
-              {/* TRUCKS */}
-              <Typography variant="h6" style={{ marginTop: 16 }}>
-                Trucks
-              </Typography>
-              <Box display="flex" alignItems="center" mb={1}>
-                <TextField
-                  size="small"
-                  value={newTruck}
-                  onChange={(e) => setNewTruck(e.target.value)}
-                  placeholder="New Truck"
-                />
-                <IconButton onClick={addTruck}>
-                  <Add />
-                </IconButton>
-              </Box>
-              <Droppable droppableId="trucks">
-                {(provided) => (
-                  <List
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    style={{ minHeight: '50px' }}
-                  >
-                    {sortedTrucks.map((truck, index) => {
-                      const draggableId = `Truck::${truck.name}`
-                      return (
-                        <Draggable
-                          key={draggableId}
-                          draggableId={draggableId}
-                          index={index}
-                        >
-                          {(providedDrag) => (
-                            <ListItem
-                              ref={providedDrag.innerRef}
-                              {...providedDrag.draggableProps}
-                              {...providedDrag.dragHandleProps}
-                              sx={{
-                                touchAction: 'none',
-                                padding: isMobile ? '4px 8px' : '6px 12px',
-                              }}
-                              secondaryAction={
-                                <IconButton
-                                  edge="end"
-                                  size="small"
-                                  onClick={() => removeTruck(truck._id)}
-                                >
-                                  <Delete fontSize="small" />
-                                </IconButton>
-                              }
-                            >
-                              <ListItemText
-                                primary={truck.name}
-                                primaryTypographyProps={{
-                                  variant: 'body2',
-                                  fontSize: isMobile ? '0.75rem' : '0.875rem',
-                                }}
-                              />
-                            </ListItem>
-                          )}
-                        </Draggable>
-                      )
-                    })}
-                    {provided.placeholder}
-                  </List>
-                )}
-              </Droppable>
-            </CardContent>
-          </Card>
+                {/* TRUCKS */}
+                <Typography variant="h6" style={{ marginTop: 16 }}>
+                  Trucks
+                </Typography>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <TextField
+                    size="small"
+                    value={newTruck}
+                    onChange={(e) => setNewTruck(e.target.value)}
+                    placeholder="New Truck"
+                  />
+                  <IconButton onClick={addTruck}>
+                    <Add />
+                  </IconButton>
+                </Box>
+                <Droppable droppableId="trucks">
+                  {(provided) => (
+                    <List
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      style={{ minHeight: '50px' }}
+                    >
+                      {sortedTrucks.map((truck, index) => {
+                        const draggableId = `Truck::${truck.name}`
+                        return (
+                          <Draggable
+                            key={draggableId}
+                            draggableId={draggableId}
+                            index={index}
+                          >
+                            {(providedDrag) => (
+                              <ListItem
+                                ref={providedDrag.innerRef}
+                                {...providedDrag.draggableProps}
+                                {...providedDrag.dragHandleProps}
+                                sx={{ touchAction: 'none' }}
+                                secondaryAction={
+                                  <IconButton
+                                    edge="end"
+                                    size="small"
+                                    onClick={() => removeTruck(truck._id)}
+                                  >
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                }
+                              >
+                                <ListItemText
+                                  primary={truck.name}
+                                  primaryTypographyProps={{
+                                    variant: 'body2',
+                                  }}
+                                />
+                              </ListItem>
+                            )}
+                          </Draggable>
+                        )
+                      })}
+                      {provided.placeholder}
+                    </List>
+                  )}
+                </Droppable>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* RIGHT SIDE: CITIES */}
-          <Card style={{ width: isMobile ? '50%' : '60%' }}>
-            <CardContent>
-              <Typography variant="h6">Cities</Typography>
-              <Box display="flex" alignItems="center" mb={1}>
-                <TextField
-                  size="small"
-                  value={newCity}
-                  onChange={(e) => setNewCity(e.target.value)}
-                  placeholder="New City"
-                />
-                <IconButton onClick={addCity}>
-                  <Add />
-                </IconButton>
-              </Box>
+          <div className="col-12 col-md-8 mb-3">
+            <Card className="shadow-sm">
+              <CardContent>
+                <Typography variant="h6">Cities</Typography>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <TextField
+                    size="small"
+                    value={newCity}
+                    onChange={(e) => setNewCity(e.target.value)}
+                    placeholder="New City"
+                  />
+                  <IconButton onClick={addCity}>
+                    <Add />
+                  </IconButton>
+                </Box>
 
-              <List>
-                {sortedCities.map((city) => (
-                  <Droppable key={city._id} droppableId={`city-${city.name}`}>
-                    {(provided) => (
-                      <ListItem
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'flex-start',
-                          border: '1px solid #ccc',
-                          marginBottom: 1,
-                          borderRadius: 1,
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            width: '100%',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                          }}
+                <List>
+                  {sortedCities.map((city) => (
+                    <Droppable key={city._id} droppableId={`city-${city.name}`}>
+                      {(provided) => (
+                        <ListItem
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className="mb-2 border rounded"
                         >
-                          <ListItemText
-                            primary={city.name}
-                            primaryTypographyProps={{
-                              variant: 'subtitle1',
-                              style: {
-                                fontWeight: 'bold',
-                                color: '#222',
-                              },
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              width: '100%',
+                              padding: '8px',
                             }}
-                          />
-                          {/* Delete button: the backend will unassign automatically */}
-                          <IconButton
-                            edge="end"
-                            onClick={() => removeCity(city._id)}
                           >
-                            <Delete />
-                          </IconButton>
-                        </Box>
+                            {/* City name + delete button */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                              }}
+                              className="mb-2"
+                            >
+                              <ListItemText
+                                primary={
+                                  <span className="fw-bold">{city.name}</span>
+                                }
+                              />
+                              <IconButton
+                                edge="end"
+                                onClick={() => removeCity(city._id)}
+                                aria-label="Remove city"
+                              >
+                                <Delete />
+                              </IconButton>
+                            </Box>
 
-                        {/* CityContainer displays assigned cars/trucks/personnel */}
-                        <Box>
-                          <CityContainer
-                            cityName={city.name}
-                            refreshTrigger={refreshTrigger}
-                          />
-                        </Box>
-
-                        {provided.placeholder}
-                      </ListItem>
-                    )}
-                  </Droppable>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
+                            {/* CityContainer displays assigned cars/trucks/personnel */}
+                            <Box>
+                              <CityContainer
+                                cityName={city.name}
+                                refreshTrigger={refreshTrigger}
+                              />
+                            </Box>
+                          </Box>
+                          {provided.placeholder}
+                        </ListItem>
+                      )}
+                    </Droppable>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+          </div>
         </Box>
       </DragDropContext>
     </div>
