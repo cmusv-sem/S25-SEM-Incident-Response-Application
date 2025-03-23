@@ -94,7 +94,7 @@ const Organization: React.FC = () => {
     fetchAllData()
   }, [])
 
-  // Sort for display purposes
+  // Sort for display purpose
   const sortedCars = [...cars].sort((a, b) => a.name.localeCompare(b.name))
   const sortedTrucks = [...trucks].sort((a, b) => a.name.localeCompare(b.name))
   const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name))
