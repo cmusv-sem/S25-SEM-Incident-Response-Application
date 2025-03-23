@@ -1,5 +1,5 @@
 import GenericItemizeContainer from '@/components/GenericItemizeContainer'
-import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material'
+import { Add, NavigateNext as Arrow, Settings, Close as X } from '@mui/icons-material'
 import {
   Box,
   FormControl,
@@ -7,7 +7,8 @@ import {
   Menu,
   MenuItem,
   Select,
-  Typography,
+  Tooltip,
+  Typography
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
@@ -204,6 +205,59 @@ function IncidentsPage() {
     }
   }
 
+   const handleAddSARIncident = async () => {
+    try {
+      const username = localStorage.getItem('username')
+      if (!username) throw new Error('Username not found in local storage.')
+
+      // Count existing SAR incidents for this user to determine the sequence number
+      let sarIncidentCount = 1
+      try {
+        const userIncidents = await request(`/api/incidents?caller=${username}`)
+        if (Array.isArray(userIncidents)) {
+          // Filter to count only SAR incidents
+          const sarIncidents = userIncidents.filter(
+            (incident) => incident.type === 'S'
+          )
+          sarIncidentCount = sarIncidents.length + 1
+        }
+      } catch (error: any) {
+        if (
+          error &&
+          error.message &&
+          error.message.includes('Unexpected end of JSON input')
+        ) {
+          sarIncidentCount = 1
+        } else {
+          throw error
+        }
+      }
+
+      // Create unique SAR incident ID (e.g. "SDena12")
+      const incidentId = `S${username}${sarIncidentCount}`
+      
+      // Create the new SAR incident
+      const newSARIncident = {
+        incidentId,
+        caller: username,
+        openingDate: new Date().toISOString(),
+        incidentState: 'Assigned',
+        owner: username,
+        commander: username,
+        type: 'S'
+      }
+
+      await request('/api/incidents/new', {
+        method: 'POST',
+        body: JSON.stringify(newSARIncident),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+    } catch (error) {
+      console.error('Error creating new SAR incident:', error)
+    }
+  }
+
   // Check if the user has an active incident (not closed)
   const hasActiveResponderIncident = data.some(
     (incident) =>
@@ -340,11 +394,30 @@ function IncidentsPage() {
                   <MenuItem value="Fire">Fire</MenuItem>
                   <MenuItem value="Medical">Medical</MenuItem>
                   <MenuItem value="Police">Police</MenuItem>
+                  <MenuItem value="SAR">SAR</MenuItem>
                 </Select>
               </FormControl>
             </MenuItem>
           </Menu>
-          {!hasActiveResponderIncident && (
+          {/* {!hasActiveResponderIncident &&  */}
+        {
+          (
+            <>
+              <Tooltip title="Create new SAR incident">
+                <IconButton
+                  sx={{
+                    position: 'fixed',
+                    bottom: 16,
+                    left: 250,
+                    width: 56,
+                    height: 56,
+                  }}
+                  onClick={handleAddSARIncident}
+                >
+                  <X fontSize="large" />
+                </IconButton>
+              </Tooltip>
+            
             <IconButton
               sx={{
                 position: 'fixed',
@@ -357,7 +430,9 @@ function IncidentsPage() {
             >
               <Add fontSize="large" />
             </IconButton>
-          )}
+            </>
+          )
+          }
         </>
       ) : null}
     </Box>

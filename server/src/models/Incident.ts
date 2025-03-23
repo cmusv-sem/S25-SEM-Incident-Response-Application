@@ -1,11 +1,12 @@
-import mongoose, { Schema, Document, Types } from 'mongoose'
-import { MedicalQuestions, FireQuestions, PoliceQuestions, EmergencyQuestions } from "../utils/types"
+import mongoose, { Document, Schema, Types } from 'mongoose';
+import { EmergencyQuestions, FireQuestions, MedicalQuestions, PoliceQuestions } from "../utils/types";
 
 export enum IncidentType {
     Fire = 'F',
     Medical = 'M',
     Police = 'P',
-    Unset = "U"
+    Unset = "U",
+    Sar = 'S'
 }
 
 export enum IncidentPriority {
