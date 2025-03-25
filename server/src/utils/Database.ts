@@ -60,11 +60,8 @@ export const connect = async (
         }
       : undefined,
   )
-
-  await Promise.all([
-    User.ensureSystemUser(),
-    Channel.ensureSystemDefinedGroup(),
-  ])
+  await User.ensureSystemUser()
+  await Channel.ensureSystemDefinedGroup()
 }
 
 /**

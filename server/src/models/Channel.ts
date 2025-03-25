@@ -5,15 +5,13 @@
  * This model is similar to a Slack channel.
  */
 
-import mongoose, { Document, Model, Schema, Types } from 'mongoose'
+import mongoose, { Schema, Document, Model, Types } from 'mongoose'
 import AutoPopulate from 'mongoose-autopopulate'
 
-import UserController from '../controllers/UserController'
-import SystemGroupConfigs, {
-  ISystemGroupConfig,
-} from '../utils/SystemDefinedGroups'
-import { IMessage } from './Message'
 import User, { IUser } from './User'
+import { IMessage } from './Message'
+import UserController from '../controllers/UserController'
+import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 
 export const PUBLIC_CHANNEL_NAME = 'Public'
 
@@ -140,8 +138,14 @@ ChannelSchema.statics.getGroupByUser = async (
 
 ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
   const systemUser = await UserController.findUserByUsername('System')
+  if (!systemUser) {
+    console.log(
+      '[ensureSystemDefinedGroup] systemUser not found. Cannot create system defined groups.',
+    )
+    return
+  }
 
-  async function ensureConfig(config: ISystemGroupConfig) {
+  for (const config of SystemGroupConfigs) {
     const channel = await Channel.findOne({ name: config.name }).exec()
     if (!channel) {
       const users = await User.find({
@@ -164,18 +168,6 @@ ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
         `[ensureSystemDefinedGroup] System Group ${config.name} already exists!`,
       )
     }
-  }
-
-  if (!systemUser) {
-    console.log(
-      '[ensureSystemDefinedGroup] systemUser not found. Cannot create system defined groups.',
-    )
-    return
-  }
-
-  // Ensure all system defined groups are created in PARALLEL
-  for (const config of SystemGroupConfigs) {
-    await ensureConfig(config)
   }
 }
 
