@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - fix-server
 
   pull_request:
     types: [opened, synchronize, reopened]
