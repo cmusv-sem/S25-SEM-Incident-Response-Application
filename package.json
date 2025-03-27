@@ -1,34 +1,34 @@
 {
-  "name": "sem-ir-app",
-  "version": "1.0.0",
-  "description": "SEM IR App",
-  "scripts": {
-    "lint": "npm run lint --prefix client && npm run lint --prefix server",
-    "lint:fix": "echo \"lint:fix not implemented\"",
-    "install:client": "cd client && npm install && cd ..",
-    "install:server": "cd server && npm install && cd ..",
-    "install": "npm run install:client && npm run install:server",
-    "dev:client": "cd client && npm start && cd ..",
-    "dev:server": "cd server && npm run dev && cd ..",
-    "dev": "concurrently --kill-others-on-fail \"npm run dev:server\" \"npm run dev:client\"",
-    "test": "cd server && npm test && cd ..",
-    "clean": "rm -rf node_modules && cd client && rm -rf node_modules && cd .. && cd server && rm -rf node_modules && cd ..",
-    "reinstall": "npm run clean && npm install",
-    "format": "cd client && npm run format && cd .. && cd server && npm run format && cd ..",
-    "commit": "CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E \"\\.(js|ts|tsx|json|md)$\"); if [ -n \"$CHANGED_FILES\" ]; then npx prettier --write $CHANGED_FILES && git add $CHANGED_FILES; fi && git-cz",
-    "commit-cz": "git-cz"
-  },
-  "devDependencies": {
-    "commitizen": "^4.3.1",
-    "concurrently": "^5.3.0",
-    "cz-vinyl": "^2.5.4"
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-vinyl"
+    "name": "sem-ir-app",
+    "version": "1.0.0",
+    "description": "SEM IR App",
+    "scripts": {
+        "lint": "npm run lint --prefix client && npm run lint --prefix server",
+        "lint:fix": "echo \"lint:fix not implemented\"",
+        "install:client": "cd client && npm install && cd ..",
+        "install:server": "cd server && npm install && cd ..",
+        "install": "npm run install:client && npm run install:server",
+        "dev:client": "cd client && npm start && cd ..",
+        "dev:server": "cd server && npm run dev && cd ..",
+        "dev": "concurrently --kill-others-on-fail \"npm run dev:server\" \"npm run dev:client\"",
+        "test": "cd server && npm test && cd ..",
+        "clean": "rm -rf node_modules && cd client && rm -rf node_modules && cd .. && cd server && rm -rf node_modules && cd ..",
+        "reinstall": "npm run clean && npm install",
+        "format": "cd client && npm run format && cd .. && cd server && npm run format && cd ..",
+        "commit": "node pre-commit.mjs && npm run commit-cz",
+        "commit-cz": "git-cz"
+    },
+    "devDependencies": {
+        "commitizen": "^4.3.1",
+        "concurrently": "^5.3.0",
+        "cz-vinyl": "^2.5.4"
+    },
+    "config": {
+        "commitizen": {
+            "path": "cz-vinyl"
+        }
+    },
+    "dependencies": {
+        "@types/react": "^19.0.11"
     }
-  },
-  "dependencies": {
-    "@types/react": "^19.0.11"
-  }
 }
