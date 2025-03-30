@@ -22,6 +22,13 @@ export enum IncidentPriority {
     Unset = 'U',
 }
 
+// All dedicated field for 'SAR Task' goes here
+//   Note: SAR Task/SAR Incident is special type of Incident
+export interface ISarTask {
+    state: 'Todo' | 'InProgress' | 'Done'
+    startDate?: Date
+}
+
 export interface IIncident extends Document {
     incidentId: string
     caller: string
@@ -57,6 +64,7 @@ export interface IIncident extends Document {
         usernames: string[]
     }[]
     respondersGroup?: Types.ObjectId | null // Reference to Channel model
+    sarTask?: ISarTask
 }
 
 const IncidentSchema = new Schema({
@@ -142,6 +150,21 @@ const IncidentSchema = new Schema({
     respondersGroup: {
         type: Schema.Types.ObjectId,
         ref: 'Channel',
+        default: null,
+    },
+    sarTask: {
+        type: {
+            state: {
+                type: String,
+                enum: ['Todo', 'InProgress', 'Done'],
+                default: 'Todo',
+            },
+            startDate: {
+                type: Date,
+                default: null
+            }
+        },
+        required: false,
         default: null,
     },
 })
