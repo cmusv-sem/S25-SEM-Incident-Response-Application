@@ -173,11 +173,15 @@ ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
         }
     }
 
-    await Promise.all(
-        SystemGroupConfigs.map(async (config) => {
-            await ensureConfig(config)
-        }),
-    )
+    // await Promise.all(
+    //     SystemGroupConfigs.map(async (config) => {
+    //         await ensureConfig(config)
+    //     }),
+    // )
+    // Some tests rely on the order of creating system groups, so do not use Promise.all here
+    for (const config of SystemGroupConfigs) {
+        await ensureConfig(config)
+    }
 }
 
 ChannelSchema.statics.closeChannel = async function (
