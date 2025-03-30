@@ -26,6 +26,11 @@ export enum IncidentType {
     Unset = 'U',
 }
 
+export interface ISarTask {
+    state: 'Todo' | 'InProgress' | 'Done'
+    startDate?: Date
+}
+
 export default interface IIncident {
     _id: string // Unique identifier for the incident
     incidentId: string
@@ -77,4 +82,5 @@ export default interface IIncident {
             status: string
         }[]
     }
+    sarTask?: ISarTask
 }
