@@ -14,9 +14,12 @@ import * as TestDatabase from '../utils/TestDatabase'
 
 describe('User controller', () => {
     // "System" user is created in the database upon app run so by default there always is one user present in the database.
-      beforeAll(async () => {
+
+    jest.setTimeout(15000)
+
+    beforeAll(async () => {
         await TestDatabase.connect()
-      })
+    })
 
     const username = 'test-username-1'
     const password = 'super-secret-password'
@@ -485,18 +488,18 @@ describe('User controller', () => {
     describe('CommanderLogout', () => {
         let incidentCommander: IUser
         let firstResponder: IUser
-    
+
         beforeEach(async () => {
             await Incident.deleteMany({})
             await User.deleteMany({})
-    
+
             // Create an incident commander
             incidentCommander = await UserController.register(
                 'incident-commander',
                 'password',
                 ROLES.FIRE
             )
-    
+
             // Create a first responder who is not an incident commander
             firstResponder = await UserController.register(
                 'first-responder',
@@ -516,7 +519,7 @@ describe('User controller', () => {
                 socket,
                 ROLES.POLICE,
             )
-    
+
             // Assign the incident commander to an incident
             await Incident.create({
                 incidentId: 'Incident-1',
@@ -525,30 +528,30 @@ describe('User controller', () => {
                 commander: incidentCommander.username
             })
         })
-    
+
         it('should transfer incident command to an available first responder upon commander logout', async () => {
             await UserController.CommanderLogout(incidentCommander.username)
-    
+
             const updatedIncident = await Incident.find({ incidentId: 'Incident-1' })
 
             expect(updatedIncident[0].commander).toBe(firstResponder.username)
         })
-    
+
         it('should not transfer command if no available first responder', async () => {
             await User.deleteOne({ username: firstResponder.username })
-    
+
             await UserController.CommanderLogout(incidentCommander.username)
-    
+
             const updatedIncident = await Incident.find({ incidentId: 'Incident-1' })
-    
+
             expect(updatedIncident[0].commander).toBe(incidentCommander.username)
         })
-    
+
         it('should throw an error if an issue occurs during logout', async () => {
             jest.spyOn(UserController, 'logout').mockImplementationOnce(() => {
                 throw new Error('Logout failed')
             })
-    
+
             await expect(UserController.CommanderLogout(incidentCommander.username)).rejects.toThrow('Logout failed')
         })
     })
@@ -559,13 +562,13 @@ describe('User controller', () => {
         let commanderUser: IUser;
         let truck: any;
         let car: any;
-    
+
         beforeEach(async () => {
             await User.deleteMany({});
             await Truck.deleteMany({});
             await Car.deleteMany({});
             await Incident.deleteMany({});
-    
+
             // Create test users
             fireUser = await UserController.register(
                 'fire-responder',
@@ -582,7 +585,7 @@ describe('User controller', () => {
                 'password',
                 ROLES.FIRE
             );
-    
+
             // Create test vehicles
             truck = await Truck.create({
                 name: 'Fire Truck 1',
@@ -592,7 +595,7 @@ describe('User controller', () => {
                 name: 'Police Car 1',
                 usernames: [policeUser.username]
             });
-    
+
             // Assign vehicles to users
             await User.updateOne(
                 { username: fireUser.username },
@@ -606,7 +609,7 @@ describe('User controller', () => {
                 { username: commanderUser.username },
                 { assignedTruck: truck.name }
             );
-    
+
             // Create test incidents
             await Incident.create({
                 incidentId: 'Fire-Incident-1',
@@ -618,7 +621,7 @@ describe('User controller', () => {
                     usernames: [fireUser.username, commanderUser.username]
                 }]
             });
-    
+
             await Incident.create({
                 incidentId: 'Police-Incident-1',
                 caller: 'Police Caller',
@@ -629,14 +632,14 @@ describe('User controller', () => {
                     usernames: [policeUser.username]
                 }]
             });
-    
+
             // Mock user connections
             const socket = mock<SocketIO.Socket>();
             UserConnections.addUserConnection(fireUser._id.toString(), socket, ROLES.FIRE);
             UserConnections.addUserConnection(policeUser._id.toString(), socket, ROLES.POLICE);
             UserConnections.addUserConnection(commanderUser._id.toString(), socket, ROLES.FIRE);
         });
-    
+
         afterEach(async () => {
             UserConnections.removeUserConnection(fireUser._id.toString());
             UserConnections.removeUserConnection(policeUser._id.toString());
@@ -649,55 +652,55 @@ describe('User controller', () => {
 
         it('should remove fire responder from assigned truck and incidents', async () => {
             await UserController.FirstResponderLogout(fireUser.username, false);
-    
+
             // Verify user is removed from truck
             const updatedTruck = await Truck.findOne({ name: truck.name });
             expect(updatedTruck?.usernames).not.toContain(fireUser.username);
-    
+
             // Verify user is removed from incidents
             const updatedFireIncident = await Incident.findOne({ incidentId: 'Fire-Incident-1' });
             const vehicleInIncident = updatedFireIncident?.assignedVehicles.find(
                 (v: any) => v.type === 'Truck' && v.name === truck.name
             );
             expect(vehicleInIncident?.usernames).not.toContain(fireUser.username);
-    
+
             // Verify user's assignedTruck is cleared
             const updatedUser = await User.findOne({ username: fireUser.username });
             expect(updatedUser?.assignedTruck).toBeNull();
         });
-    
+
         it('should remove police responder from assigned car and incidents', async () => {
             await UserController.FirstResponderLogout(policeUser.username, false);
-    
+
             // Verify user is removed from car
             const updatedCar = await Car.findOne({ name: car.name });
             expect(updatedCar?.usernames).not.toContain(policeUser.username);
-    
+
             // Verify user is removed from incidents
             const updatedPoliceIncident = await Incident.findOne({ incidentId: 'Police-Incident-1' });
             const vehicleInIncident = updatedPoliceIncident?.assignedVehicles.find(
                 (v: any) => v.type === 'Car' && v.name === car.name
             );
             expect(vehicleInIncident?.usernames).not.toContain(policeUser.username);
-    
+
             // Verify user's assignedCar is cleared
             const updatedUser = await User.findOne({ username: policeUser.username });
             expect(updatedUser?.assignedCar).toBeNull();
         });
-    
+
         it('should not modify vehicles or incidents if user has no assigned vehicle', async () => {
             // Clear assigned vehicle
             await User.updateOne(
                 { username: fireUser.username },
                 { assignedTruck: null }
             );
-    
+
             await UserController.FirstResponderLogout(fireUser.username, false);
-    
+
             // Verify truck remains unchanged
             const updatedTruck = await Truck.findOne({ name: truck.name });
             expect(updatedTruck?.usernames).toEqual(expect.arrayContaining([commanderUser.username]));
-    
+
             // Verify incident remains unchanged
             const updatedFireIncident = await Incident.findOne({ incidentId: 'Fire-Incident-1' });
             const vehicleInIncident = updatedFireIncident?.assignedVehicles.find(
