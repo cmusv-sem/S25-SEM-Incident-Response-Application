@@ -1,4 +1,4 @@
 {
   "build_command": "npm install",
-  "start_command": "npm run deploy"
+  "start_command": "ts-node --project ./tsconfig.json src/index.ts"
 }
