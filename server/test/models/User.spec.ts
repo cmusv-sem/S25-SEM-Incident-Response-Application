@@ -64,7 +64,7 @@ describe('User model', () => {
         // Mock bcrypt.compare to simulate an error
         jest.spyOn(bcrypt, 'compare').mockImplementationOnce(
             (_, __, callback) => {
-                callback(new Error('Mocked bcrypt error'), false)
+                callback?.(new Error('Mocked bcrypt error'), false)
             },
         )
 
