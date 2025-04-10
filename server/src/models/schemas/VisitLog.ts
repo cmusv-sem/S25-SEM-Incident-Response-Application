@@ -1,3 +1,4 @@
+import { uuidv4 } from "mongodb-memory-server-core/lib/util/utils";
 import mongoose, { Schema } from "mongoose";
 
 export type VisitLogPriority = "E" | "1" | "2" | "3" | "4";
@@ -6,6 +7,7 @@ export type ConsciousnessState = "Yes" | "No" | null;
 export type BreathingState = "Yes" | "No" | null;
 
 export interface IVisitLog extends Document {
+  visitLogId: string;
   timestamp: Date;
   incidentId: string;
   patientId: Schema.Types.ObjectId;
@@ -23,6 +25,7 @@ export interface IVisitLog extends Document {
 
 const VisitLogSchema = new Schema<IVisitLog>(
   {
+    visitLogId: { type: String, required: true, default: uuidv4 },
     timestamp: { type: Date, required: true, default: Date.now },
     incidentId: { type: String },
     patientId: { type: Schema.Types.ObjectId },

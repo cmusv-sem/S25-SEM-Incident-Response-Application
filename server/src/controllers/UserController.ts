@@ -552,7 +552,7 @@ class UserController {
    * @throws Error if the account creation fails.
    */
   async createTempUserForPatient() {
-    let retries = 3;
+    const retries = 3;
     let attempt = 0;
 
     while (attempt < retries) {
@@ -586,6 +586,9 @@ class UserController {
           username: newTempUsername,
           patientId: newPatient._id,
         };
+
+        // TODO: Fix this pattern for using any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         if (
           error.code === 11000 &&
