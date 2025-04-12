@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import PatientController from "../controllers/PatientController";
 import HttpError from "../utils/HttpError";
+import WebUtil from "../utils/WebUtil";
 
 export default Router()
   /**
@@ -443,6 +444,29 @@ export default Router()
     }
   })
 
+  .post("/visits", async (request, response) => {
+    try {
+      const params = WebUtil.params(request);
+
+      // Check for outer keys
+      WebUtil.ensureValidParams(params, "patientId", "visitLog");
+
+      // Check for inner keys
+      const visitLog = params.visitLog;
+      const patientId = params.patientId;
+
+      WebUtil.ensureValidParams(visitLog, "incidentId", "currentLocation");
+
+      const result = await PatientController.upsertPatientVisit(
+        patientId as string,
+        visitLog,
+      );
+      response.status(201).json(result);
+    } catch (e) {
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
+    }
+  })
   /**
    * @swagger
    * /api/patients/visitLogs:
@@ -567,7 +591,7 @@ export default Router()
         return;
       }
 
-      const result = await PatientController.createUpdatePatientVisit(
+      const result = await PatientController.upsertPatientVisit(
         patientId as string,
         visitLog,
       );
@@ -689,26 +713,26 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .put("/visitLogs", async (request, response) => {
-    try {
-      const { patientId, updatedVisitData } = request.body;
-      if (!patientId || !updatedVisitData) {
-        response
-          .status(400)
-          .json({ message: "patientId and updatedVisitData are required" });
-        return;
-      }
+  // .put("/visitLogs", async (request, response) => {
+  //   try {
+  //     const { patientId, updatedVisitData } = request.body;
+  //     if (!patientId || !updatedVisitData) {
+  //       response
+  //         .status(400)
+  //         .json({ message: "patientId and updatedVisitData are required" });
+  //       return;
+  //     }
 
-      const result = await PatientController.updatePatientVisit(
-        patientId as string,
-        updatedVisitData,
-      );
-      response.status(200).json(result);
-    } catch (e) {
-      const error = e as Error;
-      response.status(500).json({ message: error.message });
-    }
-  })
+  //     const result = await PatientController.updatePatientVisit(
+  //       patientId as string,
+  //       updatedVisitData,
+  //     );
+  //     response.status(200).json(result);
+  //   } catch (e) {
+  //     const error = e as Error;
+  //     response.status(500).json({ message: error.message });
+  //   }
+  // })
 
   /**
    * @swagger
@@ -837,37 +861,37 @@ export default Router()
       const error = e as Error;
       response.status(500).json({ message: error.message });
     }
-  })
-
-  /**
-   * @swagger
-   * /api/patients/hospital/{hospitalId}/nurse-view:
-   *   get:
-   *     summary: Get patients categorized for nurse view
-   *     description: Get patients for a specific hospital categorized by ER status for the nurse patients directory
-   *     tags: [Patient]
-   *     parameters:
-   *       - in: path
-   *         name: hospitalId
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: The ID of the hospital
-   *     responses:
-   *       200:
-   *         description: Patients categorized by ER status
-   *       500:
-   *         description: Internal server error
-   */
-  .get("/hospital/:hospitalId/nurse-view", async (request, response) => {
-    const { hospitalId } = request.params;
-
-    try {
-      const result =
-        await PatientController.getPatientsForNurseView(hospitalId);
-      response.json(result);
-    } catch (e) {
-      const error = e as Error;
-      response.status(500).json({ message: error.message });
-    }
   });
+
+/**
+ * @swagger
+ * /api/patients/hospital/{hospitalId}/nurse-view:
+ *   get:
+ *     summary: Get patients categorized for nurse view
+ *     description: Get patients for a specific hospital categorized by ER status for the nurse patients directory
+ *     tags: [Patient]
+ *     parameters:
+ *       - in: path
+ *         name: hospitalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the hospital
+ *     responses:
+ *       200:
+ *         description: Patients categorized by ER status
+ *       500:
+ *         description: Internal server error
+ */
+// .get("/hospital/:hospitalId/nurse-view", async (request, response) => {
+//   const { hospitalId } = request.params;
+
+//   try {
+//     const result =
+//       await PatientController.getPatientsForNurseView(hospitalId);
+//     response.json(result);
+//   } catch (e) {
+//     const error = e as Error;
+//     response.status(500).json({ message: error.message });
+//   }
+// });

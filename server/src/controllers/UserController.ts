@@ -1,6 +1,7 @@
 import Car from "../models/Car";
 import Channel from "../models/Channel";
 import Incident from "../models/Incident";
+import Patient from "../models/schemas/Patient";
 import Truck from "../models/Truck";
 import User, { IUser } from "../models/User";
 import ROLES from "../utils/Roles";
@@ -571,7 +572,6 @@ class UserController {
 
         await newUser.save();
 
-        const Patient = (await import("../models/Patient")).default;
         const newPatient = await Patient.create({
           patientId: newUser._id.toString(),
           username: newTempUsername,

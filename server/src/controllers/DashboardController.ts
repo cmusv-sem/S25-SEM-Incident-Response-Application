@@ -7,7 +7,7 @@ import Chart, {
 } from "../models/Dashboard";
 import Incident from "../models/Incident";
 import Message from "../models/Message";
-import Patient from "../models/Patient";
+import Patient from "../models/schemas/Patient";
 
 /**
  * Function: Get chart data formatted for a Pie Chart
